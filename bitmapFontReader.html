@@ -1,0 +1,108 @@
+<html>
+    <head>
+	<script>	
+		
+    window.onload = function(){        
+        
+        var canvas = document.createElement("canvas"),
+            ctx,
+            fontData,
+            fontImg,
+            textToDraw,
+            drawText=function(canvasContext, fontData, fontImg, text, x, y){
+                if(text && canvasContext && fontData && fontImg){
+                    var char,
+                        chars=fontData.Font.Char,
+                        charData,
+                        charOffset,
+                        charRect,
+                        charHeight=fontData.Font["-height"],
+                        charWidth=0,
+                        positionData=[],
+                        currentPosition=0,
+                        positionOffset,
+                        i,j;
+                    
+                    
+                    for (i = 0, maxi = text.length; i < maxi; ++i) {
+                        char=text.charAt(i);
+                        for (j=0, maxj=chars.length; j<maxj; j++){
+                            charData=chars[j];								
+                            if(charData && charData["-code"]==char){
+                                charWidth=parseInt(charData["-width"], 10);
+                                //char offset									
+                                charOffset=charData["-offset"].split(" ");
+                                //char rect
+                                charRect=charData["-rect"].split(" ");
+                                
+                                currentPosition+=parseInt(charOffset[0],10);						
+                                positionData.push({
+                                    sx: parseInt(charRect[0], 10),
+                                    sy: parseInt(charRect[1], 10),
+                                    sw: parseInt(charRect[2], 10),
+                                    sh: parseInt(charRect[3], 10),
+                                    dx: x+currentPosition,
+                                    dy: y+parseInt(charOffset[1],10),
+                                    dw: parseInt(charRect[2], 10),
+                                    dh: parseInt(charRect[3], 10)
+                                })																		
+                                currentPosition+=charWidth;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    console.dir(positionData);
+                    positionData.forEach(function(data){
+                        ctx.drawImage(fontImg, //source image
+                                data.sx, //source x position
+                                data.sy, //source y position
+                                data.sw, //source width
+                                data.sh, //source height
+                                data.dx, //destination x position
+                                data.dy, //destination y position
+                                data.dw, //scaled width
+                                data.dh) //scaled height
+                    });						
+                }				
+            }  
+        
+        
+	    // create a canvas and draw something in it.
+	    canvas = document.createElement("canvas");
+	    canvas.id="canvas";
+	    canvas.style.background="#555";
+	    canvas.width = window.innerWidth || 1024;
+	    canvas.height = window.innerHeight || 768;
+    
+	    ctx = canvas.getContext("2d");		    
+	    document.body.appendChild(canvas);
+		
+        //Text to draw
+        textToDraw="Panzer Division";
+      
+        
+        //load the bitmap font
+        fontImg = new Image();
+        fontImg.src = "dd_font_regular_14.png";
+        fontImg.onload=function(){
+            var script=document.createElement('script');
+            script.src="dd_font_regular_14.js";
+            
+            //load json with font data - note that we're using JSONP here
+            window.dd_font_regular_14=function(data){
+                fontData=data;
+                
+                //now that we're done let's make some cleaning
+                delete window.dd_font_regular_14;
+                document.body.removeChild(script);
+                
+                //now draw some text;
+                drawText(ctx, fontData, fontImg, textToDraw, 100, 100);
+            }
+            document.body.appendChild(script);
+        }    
+    };
+	</script>
+    </head>
+</html>
